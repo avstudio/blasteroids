@@ -3,6 +3,7 @@ typedef struct
     int ID;
     int x;
     int y;
+    float angle;
     int height;
     int width;
     int speed;

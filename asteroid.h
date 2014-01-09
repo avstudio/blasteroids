@@ -20,3 +20,4 @@ typedef struct
 
 void drawAsteroid(Asteroid *asteroid);
 void moveAsteroidDown(Asteroid *asteroid);
+void initAsteroid(Asteroid *a);

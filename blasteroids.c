@@ -27,6 +27,7 @@ void resetAsteroidPos(Asteroid *asteroid);
 
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     //object variables
     Player player;
     //primitive variable
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
     al_init_font_addon();
     al_init_ttf_addon();
 
-al_identity_transform(&t);
+    al_identity_transform(&t);
 
 
     display = al_create_display(WIDTH, HEIGHT); //create our display object
@@ -62,7 +63,6 @@ al_identity_transform(&t);
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
-    al_start_timer(timer);
 
     //Game Init
     initPlayer(&player);
@@ -71,6 +71,10 @@ al_identity_transform(&t);
         asteroids[i].ID = i;
         initAsteroid(&asteroids[i]);
     }
+
+
+    al_start_timer(timer);
+
 
 
     while (!done)
@@ -148,8 +152,8 @@ al_identity_transform(&t);
                 drawAsteroid(&asteroids[i]);
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
+            moveAsteroids();
         }
-        moveAsteroids();
     }
     return 0;
 }
@@ -178,7 +182,10 @@ void initAsteroid(Asteroid *a)
     a->x     = rx;
     a->y     = 100;
     a->speed = rs;
+    a->angle = 38;
     a->color = al_map_rgb(3, 173, 49);
+    // set_transform_for_asteroid(&t,a);
+
 }
 
 
