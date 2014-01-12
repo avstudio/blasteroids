@@ -13,12 +13,14 @@ typedef struct
     int ID;
     int height;
     int width;
+    int energy;
+    int energy_step;
     ALLEGRO_COLOR color;
     Motion motion;
 } Player;
 
 
-Player *Player_create(int, int);
+void Player_init(Player *p,int, int);
 void Player_draw(Player *self);
 void Player_move(Player *self, Direction direction);
 void Player_destroy(Player *p);

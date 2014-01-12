@@ -11,5 +11,6 @@ typedef struct
     int anlge;
 } Motion;
 
+typedef union ALLEGRO_EVENT ALLEGRO_EVENT;
 #endif
 

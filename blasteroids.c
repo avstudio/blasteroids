@@ -4,6 +4,7 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_image.h>
 #include "player.h"
 #include "asteroid.h"
 #include "bullet.h"
@@ -11,8 +12,10 @@
 #include "global.h"
 
 
+
 //globals=========
 const int WIDTH           = 800;
+const int MAX_PLAYERS     = 800;
 const int HEIGHT          = 400;
 const int FRAME_MARGIN    = 30;
 const int FPS             = 60;
@@ -20,7 +23,10 @@ const int ASTEROIDS_COUNT = 5;
 const int BULLETS_COUNT   = 5;
 enum KEYS {UP, DOWN, LEFT, RIGHT, SPACE};
 
+
+
 void error(char *msg);
+void drawFrame(Player *player, Player *playerLifes);
 void initAsteroids(Asteroid asteroids[], int size);
 void controllAsteroids(Asteroid asteroids[], int size);
 void drawAsteroids(Asteroid asteroids[], int size);
@@ -39,11 +45,16 @@ int main(int argc, char **argv)
     ALLEGRO_DISPLAY *display         = NULL;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     ALLEGRO_TIMER *timer             = NULL;
-    ALLEGRO_FONT *font18             = NULL;
+    ALLEGRO_FONT *font13             = NULL;
+    ALLEGRO_BITMAP *bgImage          = NULL;
+
 
     Asteroid asteroids[ASTEROIDS_COUNT];
     Bullet bullets[BULLETS_COUNT];
-    Player *player = NULL;
+    Player players[3];
+    Player *player = &players[0];
+    Player playerLifes[2];
+
 
     bool done      = false;
     bool redraw    = true;
@@ -57,10 +68,13 @@ int main(int argc, char **argv)
     al_install_keyboard();
     al_init_font_addon();
     al_init_ttf_addon();
+    al_init_image_addon();
 
     display = al_create_display(WIDTH, HEIGHT);
     if (!display)
         return -1;
+
+    bgImage = al_load_bitmap("starfield_background.jpg");
 
     event_queue = al_create_event_queue();
     timer       = al_create_timer(1.0 / FPS);
@@ -71,12 +85,14 @@ int main(int argc, char **argv)
 
     srand(time(NULL));
 
+    font13 = al_load_ttf_font("pirulen.ttf", 13, 0 );
+    if (!font13)
+        error("Could not load 'pirulen.ttf'.\n");
+
     //init game objects============================================
     //
-    player = Player_create(WIDTH / 2 - 12, HEIGHT  - 20);
-    if (!player)
-        error("Error with game initialization!");
 
+    Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20);
     initAsteroids(asteroids, ASTEROIDS_COUNT);
     initBullets(bullets, BULLETS_COUNT);
 
@@ -154,15 +170,36 @@ int main(int argc, char **argv)
         if (redraw && al_is_event_queue_empty(event_queue))
         {
             redraw = false;
+            al_draw_bitmap(bgImage, 0 , 0, 0);
             drawAsteroids(asteroids, ASTEROIDS_COUNT);
             Player_draw(player);
             drawBullets(bullets, BULLETS_COUNT);
+            drawFrame(player, playerLifes);
 
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
     }
+    // for (int i = 0; i < MAX_PLAYERS; ++i)
+    // {
+    //     if(players[i])
+    //     Player_destroy(players[i]);
+    // }
+    al_destroy_timer(timer);
+    al_destroy_event_queue(event_queue);
+    al_destroy_bitmap(bgImage);
     return 0;
+}
+
+void drawFrame(Player *player, Player *playerLifes )
+{
+    for (int i = 0; i <  player->energy - 1; ++i)
+    {
+        playerLifes[i].motion.x = 40  + ( i * 40);
+        playerLifes[i].motion.y = 50;
+        Player_draw(&playerLifes[i]);
+
+    }
 }
 
 void error(char *msg)
@@ -206,20 +243,6 @@ void controllAsteroids(Asteroid asteroids[], int size)
     }
 }
 
-
-// void controllAsteroids(Asteroid asteroids[], int size)
-// {
-//     for(int i = 0; i < size; i++)
-//     {
-//         if(asteroids[i].live)
-//         {
-//             asteroids[i].motion.y += asteroids[i].motion.speed;
-//             if(asteroids[i].motion.y > WIDTH)
-//                 asteroids[i].live = false;
-//         }
-//     }
-// }
-
 void drawAsteroids(Asteroid asteroids[], int size)
 {
     for (int i = 0; i < size; ++i)
@@ -255,13 +278,7 @@ int isCollision(Motion *m1, Motion *m2)
             m1->x + m1->bx > m2->x - m2->bx &&
             m1->y - m1->by < m2->y + m2->by &&
             m1->y + m1->by > m2->y - m2->by)
-    {
         return 1;
-    }
-    // else if (m1->x < 0)
-    // {
-    //     return 1;
-    // }
     return 0;
 }
 
@@ -295,17 +312,12 @@ void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player)
             if (isCollision(&asteroids[i].motion, &player->motion))
             {
                 asteroids[i].live = false;
+                player->energy -= player->energy_step;
+
             }
         }
     }
 }
-
-
-// int collideAsteroidsAndPlayer(Asteroid asteroids[],Player player int size)
-// {
-
-// }
-
 
 void fireBullet(Bullet bullets[], int size, Player *player)
 {

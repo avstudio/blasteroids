@@ -2,10 +2,10 @@
 #include <allegro5/allegro_primitives.h>
 #include "player.h"
 
-
-Player *Player_create(int x, int y)
+void Player_init(Player *p, int x, int y)
 {
-    Player *p       = malloc(sizeof(Player));
+    p->energy       = 3;
+    p->energy_step  = 1;
     p->height       = 40;
     p->width        = 40;
     p->color        = al_map_rgb(3, 173, 49);
@@ -15,7 +15,6 @@ Player *Player_create(int x, int y)
     p->motion.y     = y;
     p->motion.bx    = 7;
     p->motion.by    = 7;
-    return p;
 }
 
 void Player_destroy(Player *p)

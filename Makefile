@@ -9,7 +9,7 @@ LDFLAGS = -I/opt/local/include -I./includes
 LLIBFLAGS =  -L/usr/local/lib
 
 # SPECIFIY LINK OPTIONS
-LINKFLAGS =  -lallegro.5.0.10 -lallegro_main.5.0.10 -lallegro_font.5.0.10 -lallegro_ttf.5.0.10 -lallegro_primitives.5.0.10 -lallegro_dialog.5.0.10
+LINKFLAGS =  -lallegro.5.0.10 -lallegro_main.5.0.10 -lallegro_font.5.0.10 -lallegro_ttf.5.0.10  -lallegro_image.5.0.10 -lallegro_primitives.5.0.10 -lallegro_dialog.5.0.10
 
 # FINAL FLAGS -- TO BE USED THROUGHOUT
 FLAGS = $(LDFLAGS) $(LLIBFLAGS) $(LINKFLAGS)
