@@ -2,30 +2,52 @@
 #include <allegro5/allegro_primitives.h>
 #include "player.h"
 
-void drawPlayer(Player *p)
+
+Player *Player_create(int x, int y)
 {
-    //al_draw_filled_rectangle(player->x, player->y, player->x + player->width, player->y + player->height, player->color);
-    al_draw_line(p->x - 8 , p->y + 9  ,  p->x      ,  p->y - 11  ,  p->color, 3.0f);
-    al_draw_line(p->x     , p->y - 11 ,  p->x + 8  ,  p->y + 9   ,  p->color, 3.0f);
-    al_draw_line(p->x - 6 , p->y + 4  ,  p->x - 1  ,  p->y + 4   ,  p->color, 3.0f);
-    al_draw_line(p->x + 6 , p->y + 4  ,  p->x + 1  ,  p->y + 4   ,  p->color, 3.0f);
+    Player *p       = malloc(sizeof(Player));
+    p->height       = 40;
+    p->width        = 40;
+    p->color        = al_map_rgb(3, 173, 49);
+
+    p->motion.speed = 10;
+    p->motion.x     = x;
+    p->motion.y     = y;
+    p->motion.bx    = 7;
+    p->motion.by    = 7;
+    return p;
 }
 
-void movePlayerRight(Player *player)
+void Player_destroy(Player *p)
 {
-    player->x += player->speed;
-}
-void movePlayerLeft(Player *player)
-{
-    player->x -= player->speed;
+    //free(p->color);
+    //free(p->motion);
+    free(p);
 }
 
-void movePlayerUp(Player *player)
+void Player_draw(Player *p)
 {
-    player->y -= player->speed;
+    al_draw_filled_rectangle(p->motion.x - 9, p->motion.y , p->motion.x - 7, p->motion.y - 22, al_map_rgb(255, 0, 0));
+    al_draw_filled_rectangle(p->motion.x + 7, p->motion.y , p->motion.x + 9, p->motion.y - 22, al_map_rgb(255, 0, 0));
+    al_draw_filled_triangle( p->motion.x - 16,p->motion.y , p->motion.x    , p->motion.y - 22, p->motion.x + 16, p->motion.y, al_map_rgb(0, 255, 0));
+    al_draw_filled_rectangle(p->motion.x - 2, p->motion.y , p->motion.x + 2, p->motion.y - 22, al_map_rgb(0, 0, 255));
 }
 
-void movePlayerDown(Player *player)
+void Player_move(Player *p, Direction direction)
 {
-    player->y += player->speed;
+    switch (direction)
+    {
+    case NORTH:
+        p->motion.y -= p->motion.speed;
+        break;
+    case SOUTH:
+        p->motion.y += p->motion.speed;
+        break;
+    case WEST:
+        p->motion.x -= p->motion.speed;
+        break;
+    case EAST:
+        p->motion.x += p->motion.speed;
+        break;
+    }
 }

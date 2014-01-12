@@ -1,18 +1,26 @@
+#ifndef _player_h
+#define _player_h
+
+#include "player.h"
+#include "global.h"
+typedef enum
+{
+    NORTH, SOUTH, WEST, EAST
+} Direction;
+
 typedef struct
 {
     int ID;
-    int x;
-    int y;
-    float angle;
     int height;
     int width;
-    int speed;
     ALLEGRO_COLOR color;
+    Motion motion;
 } Player;
 
-void drawPlayer(Player *player);
 
-void movePlayerRight(Player *player);
-void movePlayerLeft(Player *player);
-void movePlayerUp(Player *player);
-void movePlayerDown(Player *player);
+Player *Player_create(int, int);
+void Player_draw(Player *self);
+void Player_move(Player *self, Direction direction);
+void Player_destroy(Player *p);
+
+#endif

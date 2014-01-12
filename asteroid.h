@@ -1,23 +1,19 @@
-#include <allegro5/allegro.h>
+#ifndef _asteroid_h
+#define _asteroid_h
+
+#include "global.h"
 
 typedef struct
 {
     int ID;
-    float x;
-    float y;
-    float sx;
-    float sy;
-    float heading;
-    float twist;
-    float rotation;
-    float speed;
-    float angle;
-    float rot_velocity;
-    float scale;
-    int gone;
+    int live;
     ALLEGRO_COLOR color;
+    Motion motion;
 } Asteroid;
 
-void drawAsteroid(Asteroid *asteroid);
-void moveAsteroidDown(Asteroid *asteroid);
-void initAsteroid(Asteroid *a);
+
+void Asteroid_init(Asteroid *a, int, int);
+void Asteroid_draw(Asteroid *self);
+void Asteroid_move(Asteroid *self);
+void Asteroid_setPoition(Asteroid *self, int, int);
+#endif

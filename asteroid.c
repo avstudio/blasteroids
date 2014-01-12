@@ -2,14 +2,25 @@
 #include <allegro5/allegro_primitives.h>
 #include "asteroid.h"
 
-void drawAsteroid(Asteroid *a)
+void Asteroid_init(Asteroid *a, int x, int y)
 {
-    int x           = a->x;
-    int y           = a->y;
+    a->color = al_map_rgb(3, 173, 49);
+    a->live  = true;
+
+    a->motion.speed = (rand() % 5) + 1;
+    a->motion.x  = x;
+    a->motion.y  = y;
+    a->motion.bx = 18;
+    a->motion.by = 18;
+}
+
+
+void Asteroid_draw(Asteroid *a)
+{
+    int x           = a->motion.x;
+    int y           = a->motion.y;
     ALLEGRO_COLOR c = a->color;
-    //ALLEGRO_TRANSFORM transform, old;
-    //set_transform_for_asteroid(&transform , a);
-    //al_use_transform(&transform);
+
     al_draw_line(x - 20  ,  y + 20  ,  x - 25  ,  y + 5   ,  c  ,  2.0f);
     al_draw_line(x - 25  ,  y + 5   ,  x - 25  ,  y - 10  ,  c  ,  2.0f);
     al_draw_line(x - 25  ,  y - 10  ,  x - 5   ,  y - 10  ,  c  ,  2.0f);
@@ -24,31 +35,22 @@ void drawAsteroid(Asteroid *a)
     al_draw_line(x + 0   ,  y + 15  ,  x - 20  ,  y + 20  ,  c  ,  2.0f);
 }
 
-// void draw_ship(SHIP *s)
-// {
-//     ALLEGRO_TRANSFORM transform, old;
-//     set_transform_for_ship(&transform , s);
-//     // follow our camera
-//     al_translate_transform(&transform , -camera_xpos , -camera_ypos);
-//     al_use_transform(&transform);
-//     al_draw_filled_rectangle(s->x , s->y , s->rx , s->by , al_map_rgb(255, 127, 0));
-//     // theoretically, reset transformation matrix for allegro here,too lazy though
-// }
-
-void moveAsteroidDown(Asteroid *a)
+void Asteroid_setPoition(Asteroid *a, int x, int y)
 {
-    a->y += a->speed;
+    a->motion.x = x;
+    a->motion.y = y;
 }
 
-void set_transform_for_asteroid(ALLEGRO_TRANSFORM *t , Asteroid *a)
+void Asteroid_move(Asteroid *a)
 {
-    al_identity_transform(t);
-    // center on ship
-    al_translate_transform(t , -40 , -40);
-    // rotate
-    al_rotate_transform(t , a->angle);
-    // move ship back where it was
-    al_translate_transform(t , 40 , 40);
+    a->motion.y += a->motion.speed;
+}
+
+void Asteroid_destroy(Asteroid *a)
+{
+    //free(a->color);
+    //free(a->motion);
+    free(a);
 }
 
 
