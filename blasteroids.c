@@ -31,7 +31,7 @@ void controllBullets(Bullet bullets[], int size);
 void startAsteroids(Asteroid asteroids[], int size);
 int  isCollision(Motion *m1, Motion *m2);
 void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[], int aSize);
-void collideAsteroidsAndPlayer(Asteroid asteroids[], Player player, int size);
+void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player);
 
 int main(int argc, char **argv)
 {
@@ -101,6 +101,7 @@ int main(int argc, char **argv)
             controllAsteroids(asteroids, ASTEROIDS_COUNT);
             controllBullets(bullets, BULLETS_COUNT);
             collideBulletsAndAsteroids(bullets, BULLETS_COUNT, asteroids, ASTEROIDS_COUNT);
+            collideAsteroidsAndPlayer(asteroids, ASTEROIDS_COUNT, player);
         }
         else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
         {
@@ -280,6 +281,20 @@ void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[
                         asteroids[j].live = false;
                     }
                 }
+            }
+        }
+    }
+}
+
+void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (asteroids[i].live)
+        {
+            if (isCollision(&asteroids[i].motion, &player->motion))
+            {
+                asteroids[i].live = false;
             }
         }
     }
