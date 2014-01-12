@@ -39,6 +39,17 @@ int  isCollision(Motion *m1, Motion *m2);
 void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[], int aSize);
 void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player);
 
+
+// void Player_draw(Player *player)
+// {
+
+//     int fx = (player->curFrame % player->animationColumns) * player->frameWidth;
+//     int fy = player->animationRow * player->frameHeight;
+//     al_draw_bitmap_region( player->image, fx, fy, player->frameWidth,
+//                           player->frameHeight, player->motion.x - player->frameWidth / 2, player->motion.y - player->frameHeight / 2, 0);
+
+// }
+
 int main(int argc, char **argv)
 {
     ALLEGRO_TRANSFORM t;
@@ -47,6 +58,7 @@ int main(int argc, char **argv)
     ALLEGRO_TIMER *timer             = NULL;
     ALLEGRO_FONT *font13             = NULL;
     ALLEGRO_BITMAP *bgImage          = NULL;
+    ALLEGRO_BITMAP *playerImage      = NULL;
 
 
     Asteroid asteroids[ASTEROIDS_COUNT];
@@ -56,10 +68,11 @@ int main(int argc, char **argv)
     Player playerLifes[2];
 
 
-    bool done      = false;
-    bool redraw    = true;
-    bool keys[5]   = {false, false, false, false, false};
-    int i          = 0;
+    bool done       = false;
+    bool isGameOver = false;
+    bool redraw     = true;
+    bool keys[5]    = {false, false, false, false, false};
+    int i           = 0;
 
     if (!al_init())
         error("Error with game initialization!");
@@ -74,8 +87,9 @@ int main(int argc, char **argv)
     if (!display)
         return -1;
 
-    bgImage = al_load_bitmap("starfield_background.jpg");
-
+    bgImage     = al_load_bitmap("starfield_background.jpg");
+    playerImage = al_load_bitmap("ship.png");
+    al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
     event_queue = al_create_event_queue();
     timer       = al_create_timer(1.0 / FPS);
 
@@ -92,7 +106,7 @@ int main(int argc, char **argv)
     //init game objects============================================
     //
 
-    Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20);
+    Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20, playerImage);
     initAsteroids(asteroids, ASTEROIDS_COUNT);
     initBullets(bullets, BULLETS_COUNT);
 
@@ -118,6 +132,9 @@ int main(int argc, char **argv)
             controllBullets(bullets, BULLETS_COUNT);
             collideBulletsAndAsteroids(bullets, BULLETS_COUNT, asteroids, ASTEROIDS_COUNT);
             collideAsteroidsAndPlayer(asteroids, ASTEROIDS_COUNT, player);
+
+            if (player->energy <= 0)
+                isGameOver = true;
         }
         else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
         {
@@ -170,24 +187,33 @@ int main(int argc, char **argv)
         if (redraw && al_is_event_queue_empty(event_queue))
         {
             redraw = false;
-            al_draw_bitmap(bgImage, 0 , 0, 0);
-            drawAsteroids(asteroids, ASTEROIDS_COUNT);
-            Player_draw(player);
-            drawBullets(bullets, BULLETS_COUNT);
-            drawFrame(player, playerLifes);
+            if (!isGameOver)
+            {
+                al_draw_bitmap(bgImage, 0 , 0, 0);
+                drawAsteroids(asteroids, ASTEROIDS_COUNT);
+                Player_draw(player);
+
+
+
+                drawBullets(bullets, BULLETS_COUNT);
+                drawFrame(player, playerLifes);
+
+                al_draw_textf(font13, al_map_rgb(255, 0, 255), 5, 5, 0, "Player has %i lives left. Player has destroyed %i objects", player->energy, 200);
+            }
+            else
+            {
+                al_draw_textf(font13, al_map_rgb(0, 255, 255), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE, "Game Over. Final Score: %i", 200);
+            }
 
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
     }
-    // for (int i = 0; i < MAX_PLAYERS; ++i)
-    // {
-    //     if(players[i])
-    //     Player_destroy(players[i]);
-    // }
+
     al_destroy_timer(timer);
     al_destroy_event_queue(event_queue);
     al_destroy_bitmap(bgImage);
+    al_destroy_bitmap(playerImage);
     return 0;
 }
 
@@ -197,7 +223,11 @@ void drawFrame(Player *player, Player *playerLifes )
     {
         playerLifes[i].motion.x = 40  + ( i * 40);
         playerLifes[i].motion.y = 50;
-        Player_draw(&playerLifes[i]);
+        //Player_draw(&playerLifes[i],playerImage);
+        // al_draw_bitmap_region( playerImage, fx, fy, player->frameWidth,
+        //                   player->frameHeight, player->motion.x - player->frameWidth / 2, player->motion.y - player->frameHeight / 2, 0);
+
+
 
     }
 }
@@ -313,7 +343,6 @@ void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player)
             {
                 asteroids[i].live = false;
                 player->energy -= player->energy_step;
-
             }
         }
     }

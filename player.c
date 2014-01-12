@@ -1,8 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_image.h>
 #include "player.h"
 
-void Player_init(Player *p, int x, int y)
+void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)
 {
     p->energy       = 3;
     p->energy_step  = 1;
@@ -15,6 +20,20 @@ void Player_init(Player *p, int x, int y)
     p->motion.y     = y;
     p->motion.bx    = 7;
     p->motion.by    = 7;
+
+
+    p->maxFrame = 3;
+    p->curFrame = 0;
+    p->frameCount = 0;
+    p->frameDelay = 50;
+    p->frameWidth = 46;
+    p->frameHeight = 41;
+    p->animationColumns = 3;
+    p->animationDirection = 1;
+
+    p->animationRow = 1;
+    p->image = image;
+
 }
 
 void Player_destroy(Player *p)
@@ -24,12 +43,22 @@ void Player_destroy(Player *p)
     free(p);
 }
 
-void Player_draw(Player *p)
+void Player_draw(Player *player)
 {
-    al_draw_filled_rectangle(p->motion.x - 9, p->motion.y , p->motion.x - 7, p->motion.y - 22, al_map_rgb(255, 0, 0));
-    al_draw_filled_rectangle(p->motion.x + 7, p->motion.y , p->motion.x + 9, p->motion.y - 22, al_map_rgb(255, 0, 0));
-    al_draw_filled_triangle( p->motion.x - 16,p->motion.y , p->motion.x    , p->motion.y - 22, p->motion.x + 16, p->motion.y, al_map_rgb(0, 255, 0));
-    al_draw_filled_rectangle(p->motion.x - 2, p->motion.y , p->motion.x + 2, p->motion.y - 22, al_map_rgb(0, 0, 255));
+
+    int fx = (player->curFrame % player->animationColumns) * player->frameWidth;
+    int fy = player->animationRow * player->frameHeight;
+    al_draw_bitmap_region( player->image, fx, fy, player->frameWidth,
+                          player->frameHeight, player->motion.x - player->frameWidth / 2, player->motion.y - player->frameHeight / 2, 0);
+
+
+
+
+
+    // al_draw_filled_rectangle(p->motion.x - 9, p->motion.y , p->motion.x - 7, p->motion.y - 22, al_map_rgb(255, 0, 0));
+    // al_draw_filled_rectangle(p->motion.x + 7, p->motion.y , p->motion.x + 9, p->motion.y - 22, al_map_rgb(255, 0, 0));
+    // al_draw_filled_triangle (p->motion.x - 16,p->motion.y , p->motion.x    , p->motion.y - 22, p->motion.x + 16, p->motion.y, al_map_rgb(0, 255, 0));
+    // al_draw_filled_rectangle(p->motion.x - 2, p->motion.y , p->motion.x + 2, p->motion.y - 22, al_map_rgb(0, 0, 255));
 }
 
 void Player_move(Player *p, Direction direction)
