@@ -16,6 +16,9 @@ FLAGS = $(LDFLAGS) $(LLIBFLAGS) $(LINKFLAGS)
 
 all: clean  blasteroids
 
+effects.c:
+	$(CC) $(FLAGS) -c effects.c -o effects.o $(FLAGS)
+
 enemy.c:
 	$(CC) $(FLAGS) -c enemy.c -o enemy.o $(FLAGS)
 
@@ -25,11 +28,11 @@ bullet.c:
 player.c:
 	$(CC) $(FLAGS) -c player.c -o player.o $(FLAGS)
 
-blasteroids.o: player.c enemy.c bullet.c
+blasteroids.o: player.c enemy.c bullet.c effects.c
 	$(CC) $(FLAGS) -c blasteroids.c -o blasteroids.o $(FLAGS)
 
-blasteroids: blasteroids.o player.o enemy.o bullet.o
-	$(CC) blasteroids.o player.o enemy.o bullet.o  -o blasteroids $(FLAGS)
+blasteroids: blasteroids.o player.o enemy.o bullet.o effects.o
+	$(CC) blasteroids.o player.o enemy.o bullet.o effects.o  -o blasteroids $(FLAGS)
 
 clean:
 	rm -rf *o ./blasteroids

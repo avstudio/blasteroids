@@ -17,5 +17,5 @@ void Enemy_init(Enemy *e, int, int, ALLEGRO_BITMAP *image);
 void Enemy_draw(Enemy *e);
 void Enemy_move(Enemy *e);
 
-void updateAnimation(Enemy *e);
+static void updateAnimation(Enemy *e);
 #endif

@@ -22,7 +22,6 @@ void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)
     p->motion.bx              = 12;
     p->motion.by              = 12;
 
-
     p->animation.maxFrame     = 3;
     p->animation.curFrame     = 1;
     p->animation.frameCount   = 0;
@@ -33,13 +32,7 @@ void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)
     p->animation.numOfRows    = 1;
     p->animation.image        = image;
 }
-void Player_SetAnimation(Player *p, int position)
-{
-    if (position == 1)
-        p->animation.numOfRows = 1;
-    else
-        p->animation.curFrame = 0;
-}
+
 void Player_destroy(Player *p)
 {
     //free(p->color);

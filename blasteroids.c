@@ -7,6 +7,7 @@
 #include <allegro5/allegro_image.h>
 #include "player.h"
 #include "enemy.h"
+#include "effects.h"
 #include "bullet.h"
 #include "global.h"
 
@@ -47,12 +48,14 @@ int main(int argc, char **argv)
     ALLEGRO_FONT *font13             = NULL;
     ALLEGRO_BITMAP *bgImage          = NULL;
     ALLEGRO_BITMAP *playerImage      = NULL;
-    ALLEGRO_BITMAP *enemyImage    = NULL;
+    ALLEGRO_BITMAP *enemyImage       = NULL;
+    ALLEGRO_BITMAP *explosionImage   = NULL;
 
 
     Enemy enemys[ASTEROIDS_COUNT];
     Bullet bullets[BULLETS_COUNT];
     Player players[3];
+    Explosion *explosion;
     Player *player = &players[0];
     Player playerLifes[2];
 
@@ -76,13 +79,13 @@ int main(int argc, char **argv)
     if (!display)
         return -1;
 
-    bgImage       = al_load_bitmap("11750.jpg");
-    playerImage   = al_load_bitmap("ship.png");
+    bgImage        = al_load_bitmap("11750.jpg");
+    playerImage    = al_load_bitmap("ship.png");
     al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
-    enemyImage = al_load_bitmap("asteroid@50.png");
-
-    event_queue   = al_create_event_queue();
-    timer         = al_create_timer(1.0 / FPS);
+    explosionImage = al_load_bitmap("explosion.png");
+    enemyImage     = al_load_bitmap("asteroid@50.png");
+    event_queue    = al_create_event_queue();
+    timer          = al_create_timer(1.0 / FPS);
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -98,6 +101,7 @@ int main(int argc, char **argv)
     //
 
     Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20, playerImage);
+    //Explosion_init(explosion, explosionImage);
     initEnemys(enemys, ASTEROIDS_COUNT, enemyImage);
     initBullets(bullets, BULLETS_COUNT);
 
@@ -125,6 +129,7 @@ int main(int argc, char **argv)
             controllBullets(bullets, BULLETS_COUNT);
             collideBulletsAndEnemys(bullets, BULLETS_COUNT, enemys, ASTEROIDS_COUNT, player);
             collideEnemysAndPlayer(enemys, ASTEROIDS_COUNT, player);
+            //Explosion_start(explosion);
 
             if (player->energy <= 0)
                 isGameOver = true;
@@ -205,6 +210,7 @@ int main(int argc, char **argv)
     al_destroy_bitmap(bgImage);
     al_destroy_bitmap(enemyImage);
     al_destroy_bitmap(playerImage);
+    al_destroy_bitmap(explosionImage);
     return 0;
 }
 

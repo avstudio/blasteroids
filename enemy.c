@@ -4,21 +4,21 @@
 
 void Enemy_init(Enemy *e, int x, int y, ALLEGRO_BITMAP *image)
 {
-    e->color = al_map_rgb(3, 173, 49);
-    e->live  = false;
+    e->color                  = al_map_rgb(3, 173, 49);
+    e->live                   = false;
 
-    e->motion.speed = (rand() % 4) + 1;
-    e->motion.x  = x;
-    e->motion.y  = y;
-    e->motion.bx = 18;
-    e->motion.by = 18;
+    e->motion.speed           = (rand() % 4) + 1;
+    e->motion.x               = x;
+    e->motion.y               = y;
+    e->motion.bx              = 18;
+    e->motion.by              = 18;
 
-    e->animation.maxFrame = 60;
-    e->animation.curFrame = 0;
-    e->animation.frameCount = 0;
-    e->animation.frameDelay = 1;
-    e->animation.frameWidth = 64;
-    e->animation.frameHeight = 64;
+    e->animation.maxFrame     = 60;
+    e->animation.curFrame     = 0;
+    e->animation.frameCount   = 0;
+    e->animation.frameDelay   = (rand() % 3) + 1; ;
+    e->animation.frameWidth   = 64;
+    e->animation.frameHeight  = 64;
     e->animation.numOfColumns = 8;
 
 
@@ -57,7 +57,7 @@ void Enemy_destroy(Enemy *e)
 }
 //private
 
-void updateAnimation(Enemy *e)
+static void updateAnimation(Enemy *e)
 {
     if (++e->animation.frameCount >= e->animation.frameDelay)
     {
