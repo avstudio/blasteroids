@@ -36,6 +36,7 @@ typedef struct
 
 
 void Player_init(Player *p, int, int, ALLEGRO_BITMAP *image);
+void Player_reset(Player *p);
 void Player_draw(Player *p);
 void Player_move(Player *p, Direction direction);
 void Player_destroy(Player *p);

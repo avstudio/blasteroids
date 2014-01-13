@@ -6,7 +6,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
 #include "player.h"
-#include "asteroid.h"
+#include "enemy.h"
 #include "bullet.h"
 #include "collision.h"
 #include "global.h"
@@ -16,7 +16,7 @@
 //globals=========
 const int WIDTH           = 800;
 const int MAX_PLAYERS     = 800;
-const int HEIGHT          = 400;
+const int HEIGHT          = 600;
 const int FRAME_MARGIN    = 30;
 const int FPS             = 60;
 const int ASTEROIDS_COUNT = 5;
@@ -27,28 +27,17 @@ enum KEYS {UP, DOWN, LEFT, RIGHT, SPACE};
 
 void error(char *msg);
 void drawFrame(Player *player, Player *playerLifes);
-void initAsteroids(Asteroid asteroids[], int size);
-void controllAsteroids(Asteroid asteroids[], int size);
-void drawAsteroids(Asteroid asteroids[], int size);
+void initEnemys(Enemy enemys[], int size, ALLEGRO_BITMAP *image);
+void controllEnemys(Enemy enemys[], int size);
+void drawEnemys(Enemy enemys[], int size);
 void initBullets(Bullet bullets[], int size);
 void fireBullet(Bullet bullets[], int size, Player *player);
 void drawBullets(Bullet bullets[], int size);
 void controllBullets(Bullet bullets[], int size);
-void startAsteroids(Asteroid asteroids[], int size);
+void startEnemys(Enemy enemys[], int size);
 int  isCollision(Motion *m1, Motion *m2);
-void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[], int aSize);
-void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player);
-
-
-// void Player_draw(Player *player)
-// {
-
-//     int fx = (player->curFrame % player->animationColumns) * player->frameWidth;
-//     int fy = player->animationRow * player->frameHeight;
-//     al_draw_bitmap_region( player->image, fx, fy, player->frameWidth,
-//                           player->frameHeight, player->motion.x - player->frameWidth / 2, player->motion.y - player->frameHeight / 2, 0);
-
-// }
+void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aSize, Player *player);
+void collideEnemysAndPlayer(Enemy enemys[], int size, Player *player);
 
 int main(int argc, char **argv)
 {
@@ -59,9 +48,10 @@ int main(int argc, char **argv)
     ALLEGRO_FONT *font13             = NULL;
     ALLEGRO_BITMAP *bgImage          = NULL;
     ALLEGRO_BITMAP *playerImage      = NULL;
+    ALLEGRO_BITMAP *enemyImage    = NULL;
 
 
-    Asteroid asteroids[ASTEROIDS_COUNT];
+    Enemy enemys[ASTEROIDS_COUNT];
     Bullet bullets[BULLETS_COUNT];
     Player players[3];
     Player *player = &players[0];
@@ -87,11 +77,13 @@ int main(int argc, char **argv)
     if (!display)
         return -1;
 
-    bgImage     = al_load_bitmap("starfield_background.jpg");
-    playerImage = al_load_bitmap("ship.png");
+    bgImage       = al_load_bitmap("11750.jpg");
+    playerImage   = al_load_bitmap("ship.png");
     al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
-    event_queue = al_create_event_queue();
-    timer       = al_create_timer(1.0 / FPS);
+    enemyImage = al_load_bitmap("asteroid@50.png");
+
+    event_queue   = al_create_event_queue();
+    timer         = al_create_timer(1.0 / FPS);
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -107,7 +99,7 @@ int main(int argc, char **argv)
     //
 
     Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20, playerImage);
-    initAsteroids(asteroids, ASTEROIDS_COUNT);
+    initEnemys(enemys, ASTEROIDS_COUNT, enemyImage);
     initBullets(bullets, BULLETS_COUNT);
 
     al_start_timer(timer);
@@ -123,15 +115,17 @@ int main(int argc, char **argv)
         else if (ev.type == ALLEGRO_EVENT_TIMER)
         {
             redraw = true;
-            if (keys[RIGHT] && player->motion.x < WIDTH )   Player_move(player, EAST);
-            if (keys[LEFT]  && player->motion.x > 0)        Player_move(player, WEST);
-            if (keys[UP]    && player->motion.y > 10)       Player_move(player, NORTH);
-            if (keys[DOWN]  && player->motion.y < HEIGHT )  Player_move(player, SOUTH);
+            if (keys[UP]    && player->motion.y > HEIGHT/3)     Player_move(player, NORTH);
+            else if (keys[DOWN]  && player->motion.y < HEIGHT ) Player_move(player, SOUTH);
+            else if (keys[RIGHT] && player->motion.x < WIDTH )  Player_move(player, EAST);
+            else if (keys[LEFT]  && player->motion.x > 0)       Player_move(player, WEST);
+            else Player_reset(player);
 
-            controllAsteroids(asteroids, ASTEROIDS_COUNT);
+
+            controllEnemys(enemys, ASTEROIDS_COUNT);
             controllBullets(bullets, BULLETS_COUNT);
-            collideBulletsAndAsteroids(bullets, BULLETS_COUNT, asteroids, ASTEROIDS_COUNT);
-            collideAsteroidsAndPlayer(asteroids, ASTEROIDS_COUNT, player);
+            collideBulletsAndEnemys(bullets, BULLETS_COUNT, enemys, ASTEROIDS_COUNT, player);
+            collideEnemysAndPlayer(enemys, ASTEROIDS_COUNT, player);
 
             if (player->energy <= 0)
                 isGameOver = true;
@@ -189,20 +183,17 @@ int main(int argc, char **argv)
             redraw = false;
             if (!isGameOver)
             {
-                al_draw_bitmap(bgImage, 0 , 0, 0);
-                drawAsteroids(asteroids, ASTEROIDS_COUNT);
+                al_draw_bitmap(bgImage, -100 , -100, 0);
+                drawEnemys(enemys, ASTEROIDS_COUNT);
                 Player_draw(player);
-
-
 
                 drawBullets(bullets, BULLETS_COUNT);
                 drawFrame(player, playerLifes);
-
-                al_draw_textf(font13, al_map_rgb(255, 0, 255), 5, 5, 0, "Player has %i lives left. Player has destroyed %i objects", player->energy, 200);
+                al_draw_textf(font13, al_map_rgb(255, 0, 255), 5, 5, 0, "%d lives left. Destroyed %d objects", player->energy, player->score);
             }
             else
             {
-                al_draw_textf(font13, al_map_rgb(0, 255, 255), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE, "Game Over. Final Score: %i", 200);
+                al_draw_textf(font13, al_map_rgb(0, 255, 255), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE, "Game Over. Final Score: %d", player->score);
             }
 
             al_flip_display();
@@ -213,6 +204,7 @@ int main(int argc, char **argv)
     al_destroy_timer(timer);
     al_destroy_event_queue(event_queue);
     al_destroy_bitmap(bgImage);
+    al_destroy_bitmap(enemyImage);
     al_destroy_bitmap(playerImage);
     return 0;
 }
@@ -244,41 +236,41 @@ void initBullets(Bullet bullets[], int size)
         Bullet_init(&bullets[i]);
 }
 
-void initAsteroids(Asteroid asteroids[], int size)
+void initEnemys(Enemy enemys[], int size , ALLEGRO_BITMAP *image)
 {
     for (int i = 0; i < size; i++)
     {
-        asteroids[i].ID = i;
-        Asteroid_init(&asteroids[i], rand() % WIDTH, -(rand() % 120));
+        enemys[i].ID = i;
+        Enemy_init(&enemys[i], rand() % WIDTH, -(rand() % 120), image);
     }
 }
 
-void controllAsteroids(Asteroid asteroids[], int size)
+void controllEnemys(Enemy enemys[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        if (asteroids[i].live)
+        if (enemys[i].live)
         {
 
-            asteroids[i].motion.y += asteroids[i].motion.speed;
+            enemys[i].motion.y += enemys[i].motion.speed;
         }
         else
         {
-            asteroids[i].live     = true;
-            asteroids[i].motion.x = 30 + rand() % (WIDTH - 60);
-            asteroids[i].motion.y = - 100;
+            enemys[i].live     = true;
+            enemys[i].motion.x = 30 + rand() % (WIDTH - 60);
+            enemys[i].motion.y = - 100;
         }
-        if (asteroids[i].motion.y > HEIGHT + 100)
-            asteroids[i].live     = false;
+        if (enemys[i].motion.y > HEIGHT + 100)
+            enemys[i].live     = false;//send event
     }
 }
 
-void drawAsteroids(Asteroid asteroids[], int size)
+void drawEnemys(Enemy enemys[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        if (asteroids[i].live)
-            Asteroid_draw(&asteroids[i]);
+        if (enemys[i].live)
+            Enemy_draw(&enemys[i]);
     }
 }
 void drawBullets(Bullet bullets[], int size)
@@ -312,7 +304,7 @@ int isCollision(Motion *m1, Motion *m2)
     return 0;
 }
 
-void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[], int aSize)
+void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aSize, Player *player)
 {
     for (int i = 0; i < bSize; i++)
     {
@@ -320,12 +312,13 @@ void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[
         {
             for (int j = 0; j < aSize; j++)
             {
-                if (asteroids[j].live)
+                if (enemys[j].live)
                 {
-                    if (isCollision(&bullets[i].motion, &asteroids[j].motion))
+                    if (isCollision(&bullets[i].motion, &enemys[j].motion))
                     {
                         bullets[i].live   = false;
-                        asteroids[j].live = false;
+                        enemys[j].live = false;
+                        player->score ++;
                     }
                 }
             }
@@ -333,15 +326,15 @@ void collideBulletsAndAsteroids(Bullet bullets[], int bSize, Asteroid asteroids[
     }
 }
 
-void collideAsteroidsAndPlayer(Asteroid asteroids[], int size, Player *player)
+void collideEnemysAndPlayer(Enemy enemys[], int size, Player *player)
 {
     for (int i = 0; i < size; i++)
     {
-        if (asteroids[i].live)
+        if (enemys[i].live)
         {
-            if (isCollision(&asteroids[i].motion, &player->motion))
+            if (isCollision(&enemys[i].motion, &player->motion))
             {
-                asteroids[i].live = false;
+                enemys[i].live = false;
                 player->energy -= player->energy_step;
             }
         }
