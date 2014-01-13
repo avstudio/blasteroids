@@ -19,20 +19,17 @@ all: clean  blasteroids
 enemy.c:
 	$(CC) $(FLAGS) -c enemy.c -o enemy.o $(FLAGS)
 
-collision.c:
-	$(CC) $(FLAGS) -c collision.c -o collision.o $(FLAGS)
-
 bullet.c:
 	$(CC) $(FLAGS) -c bullet.c -o bullet.o $(FLAGS)
 
 player.c:
 	$(CC) $(FLAGS) -c player.c -o player.o $(FLAGS)
 
-blasteroids.o: player.c enemy.c bullet.c collision.c
+blasteroids.o: player.c enemy.c bullet.c
 	$(CC) $(FLAGS) -c blasteroids.c -o blasteroids.o $(FLAGS)
 
-blasteroids: blasteroids.o player.o enemy.o bullet.o collision.o
-	$(CC) blasteroids.o player.o enemy.o bullet.o collision.o  -o blasteroids $(FLAGS)
+blasteroids: blasteroids.o player.o enemy.o bullet.o
+	$(CC) blasteroids.o player.o enemy.o bullet.o  -o blasteroids $(FLAGS)
 
 clean:
 	rm -rf *o ./blasteroids

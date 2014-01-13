@@ -9,20 +9,7 @@ typedef struct
     int live;
     ALLEGRO_COLOR color;
     Motion motion;
-
-    int maxFrame;
-    int curFrame;
-    int frameCount;
-    int frameDelay;
-    int frameWidth;
-    int frameHeight;
-    int animationColumns;
-    int animationDirection;
-
-    int animationRow;
-
-    ALLEGRO_BITMAP *image;
-
+    Animation animation;
 } Enemy;
 
 

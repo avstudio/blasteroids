@@ -8,7 +8,6 @@
 #include "player.h"
 #include "enemy.h"
 #include "bullet.h"
-#include "collision.h"
 #include "global.h"
 
 
@@ -200,7 +199,7 @@ int main(int argc, char **argv)
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
     }
-
+    //destroy things
     al_destroy_timer(timer);
     al_destroy_event_queue(event_queue);
     al_destroy_bitmap(bgImage);

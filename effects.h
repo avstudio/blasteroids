@@ -1,25 +1,17 @@
-#ifndef _player_h
-#define _player_h
+#ifndef _effects_h
+#define _effects_h
 
-#include "player.h"
+#include "effects.h"
 #include "global.h"
-typedef enum
-{
-    NORTH, SOUTH, WEST, EAST
-} Direction;
 
 typedef struct
 {
-    int ID;
-    int height;
-    int width;
-    int energy;
-    int score;
-    int energy_step;
-    ALLEGRO_COLOR color;
-    Animation animation;
+    ALLEGRO_BITMAP *image;
+
+
+
     Motion motion;
-} Player;
+} Explosion;
 
 
 void Player_init(Player *p, int, int, ALLEGRO_BITMAP *image);
