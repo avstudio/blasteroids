@@ -11,6 +11,11 @@
 #include "bullet.h"
 #include "global.h"
 
+#define  BG_IMAGE         "11750.jpg"
+#define  PLAYER_IMAGE     "ship.png"
+#define  EXPLOSION_IMAGE  "explosion.png"
+#define  ENEMY_IMAGE      "asteroid@50.png"
+
 
 
 //globals=========
@@ -65,14 +70,13 @@ int main(int argc, char **argv)
     ALLEGRO_BITMAP *enemyImage       = NULL;
     ALLEGRO_BITMAP *explosionImage   = NULL;
 
-
+    //objects
     Enemy enemies[ASTEROIDS_COUNT];
+    Explosion explosions[EXPLOSIONS_COUNT];
     Bullet bullets[BULLETS_COUNT];
     Player players[NUM_OF_PLAYERS];
-    Explosion explosions[EXPLOSIONS_COUNT];
     Player *player = &players[0];
     Player playerLifes[2];//todo
-
 
     bool done       = false;
     bool isGameOver = false;
@@ -93,10 +97,10 @@ int main(int argc, char **argv)
     if (!display)
         return -1;
 
-    bgImage        = al_load_bitmap("11750.jpg");
-    playerImage    = al_load_bitmap("ship.png");
-    explosionImage = al_load_bitmap("explosion.png");
-    enemyImage     = al_load_bitmap("asteroid@50.png");
+    bgImage        = al_load_bitmap(BG_IMAGE);
+    playerImage    = al_load_bitmap(PLAYER_IMAGE);
+    explosionImage = al_load_bitmap(EXPLOSION_IMAGE);
+    enemyImage     = al_load_bitmap(ENEMY_IMAGE);
     event_queue    = al_create_event_queue();
     timer          = al_create_timer(1.0 / FPS);
 
