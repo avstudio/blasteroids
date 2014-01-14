@@ -40,8 +40,8 @@ void drawBullets(Bullet bullets[], int size);
 void controllBullets(Bullet bullets[], int size);
 void startEnemies(Enemy enemies[], int size);
 int  isCollision(Motion *m1, Motion *m2);
-void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[]);
-void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[]);
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize);
+void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[], int expSize);
 void startExpolsion(Explosion explosions[], int x, int y, int size);
 
 int main(int argc, char **argv)
@@ -132,8 +132,8 @@ int main(int argc, char **argv)
 
             controllEnemies(enemies, ASTEROIDS_COUNT);
             controllBullets(bullets, BULLETS_COUNT);
-            collideBulletsAndEnemies(bullets, BULLETS_COUNT, enemies, ASTEROIDS_COUNT, player, explosions);
-            collideEnemiesAndPlayer(enemies, ASTEROIDS_COUNT, player, explosions);
+            collideBulletsAndEnemies(bullets, BULLETS_COUNT, enemies, ASTEROIDS_COUNT, player, explosions, EXPLOSIONS_COUNT);
+            collideEnemiesAndPlayer(enemies, ASTEROIDS_COUNT, player, explosions, EXPLOSIONS_COUNT);
             //Explosion_start(explosion);
 
             if (player->energy <= 0)
@@ -331,7 +331,7 @@ int isCollision(Motion *m1, Motion *m2)
     return 0;
 }
 
-void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[])
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize)
 {
     for (int i = 0; i < bSize; i++)
     {
@@ -346,7 +346,7 @@ void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int 
                         bullets[i].live   = false;
                         enemies[j].live = false;
                         player->score ++;
-                        startExpolsion(explosions, bullets[i].motion.x, bullets[i].motion.y, EXPLOSIONS_COUNT);
+                        startExpolsion(explosions, bullets[i].motion.x, bullets[i].motion.y, expSize);
                     }
                 }
             }
@@ -367,7 +367,7 @@ void startExpolsion(Explosion explosions[], int x, int y, int size)
     }
 }
 
-void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[])
+void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[], int expSize)
 {
     for (int i = 0; i < size; i++)
     {

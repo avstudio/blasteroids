@@ -27,5 +27,6 @@ void Player_reset(Player *p);
 void Player_draw(Player *p);
 void Player_move(Player *p, Direction direction);
 void Player_destroy(Player *p);
+int Player_isDead(Player *p);
 
 #endif

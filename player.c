@@ -32,7 +32,10 @@ void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)
     p->animation.numOfRows    = 1;
     p->animation.image        = image;
 }
-
+int Player_isDead(Player *p)
+{
+    return p->energy == 0;
+}
 void Player_destroy(Player *p)
 {
     //free(p->color);
@@ -45,7 +48,7 @@ void Player_draw(Player *p)
 
     int fx = (p->animation.curFrame % p->animation.numOfColumns) * p->animation.frameWidth;
     int fy = p->animation.numOfRows * p->animation.frameHeight;
-    al_draw_bitmap_region( p->animation.image, fx -7, fy, p->animation.frameWidth,
+    al_draw_bitmap_region( p->animation.image, fx - 7, fy, p->animation.frameWidth,
                            p->animation.frameHeight, p->motion.x - p->animation.frameWidth / 2, p->motion.y - p->animation.frameHeight / 2, 0);
 
 
