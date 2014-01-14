@@ -11,7 +11,8 @@ typedef struct
     Animation animation;
 } Explosion;
 
-void Explosion_init(Explosion *e, ALLEGRO_BITMAP *image);
+void Explosion_init(Explosion *e,  ALLEGRO_BITMAP *image);
 void Explosion_destroy(Explosion *e);
-void Explosion_start(Explosion *e);
+void Explosion_draw(Explosion *e);
+void Explosion_reset(Explosion *e,int, int);
 #endif

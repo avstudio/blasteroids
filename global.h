@@ -23,6 +23,7 @@ typedef struct
     int numOfColumns;
     int numOfRows;
     ALLEGRO_BITMAP *image;
+
 } Animation;
 
 typedef union ALLEGRO_EVENT ALLEGRO_EVENT;

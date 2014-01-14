@@ -34,7 +34,15 @@ void Enemy_init(Enemy *e, int x, int y, ALLEGRO_BITMAP *image)
 
 void Enemy_draw(Enemy *e)
 {
-    updateAnimation(e);
+    if (++e->animation.frameCount >= e->animation.frameDelay)
+    {
+        e->animation.curFrame += e->animation.direction;
+        if (e->animation.curFrame >= e->animation.maxFrame)
+            e->animation.curFrame = 0;
+        else if ( e->animation.curFrame <= 0)
+            e->animation.curFrame = e->animation.maxFrame - 1;
+        e->animation.frameCount = 0;
+    }
     int fx = (e->animation.curFrame % e->animation.numOfColumns) * e->animation.frameWidth;
     int fy = (e->animation.curFrame / e->animation.numOfColumns) * e->animation.frameHeight;
     al_draw_bitmap_region(e->animation.image, fx, fy, e->animation.frameWidth,
@@ -54,20 +62,6 @@ void Enemy_destroy(Enemy *e)
     //free(e->color);
     //free(e->motion);
     free(e);
-}
-//private
-
-static void updateAnimation(Enemy *e)
-{
-    if (++e->animation.frameCount >= e->animation.frameDelay)
-    {
-        e->animation.curFrame += e->animation.direction;
-        if (e->animation.curFrame >= e->animation.maxFrame)
-            e->animation.curFrame = 0;
-        else if ( e->animation.curFrame <= 0)
-            e->animation.curFrame = e->animation.maxFrame - 1;
-        e->animation.frameCount = 0;
-    }
 }
 
 

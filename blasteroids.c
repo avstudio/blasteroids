@@ -14,30 +14,35 @@
 
 
 //globals=========
-const int WIDTH           = 800;
-const int MAX_PLAYERS     = 800;
-const int HEIGHT          = 600;
-const int FRAME_MARGIN    = 30;
-const int FPS             = 60;
-const int ASTEROIDS_COUNT = 5;
-const int BULLETS_COUNT   = 5;
+const int WIDTH            = 800;
+const int MAX_PLAYERS      = 800;
+const int HEIGHT           = 600;
+const int FRAME_MARGIN     = 30;
+const int FPS              = 60;
+const int ASTEROIDS_COUNT  = 5;
+const int BULLETS_COUNT    = 5;
+const int EXPLOSIONS_COUNT = 5;
+const int NUM_OF_PLAYERS   = 3;
 enum KEYS {UP, DOWN, LEFT, RIGHT, SPACE};
 
 
 
 void error(char *msg);
 void drawFrame(Player *player, Player *playerLifes);
-void initEnemys(Enemy enemys[], int size, ALLEGRO_BITMAP *image);
-void controllEnemys(Enemy enemys[], int size);
-void drawEnemys(Enemy enemys[], int size);
+void initEnemies(Enemy enemies[], int size, ALLEGRO_BITMAP *image);
+void controllEnemies(Enemy enemies[], int size);
+void drawEnemies(Enemy enemies[], int size);
 void initBullets(Bullet bullets[], int size);
+void initExplosions(Explosion explosions[], int size, ALLEGRO_BITMAP *explosionImage);
+void drawExplosions(Explosion explosions[], int size);
 void fireBullet(Bullet bullets[], int size, Player *player);
 void drawBullets(Bullet bullets[], int size);
 void controllBullets(Bullet bullets[], int size);
-void startEnemys(Enemy enemys[], int size);
+void startEnemies(Enemy enemies[], int size);
 int  isCollision(Motion *m1, Motion *m2);
-void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aSize, Player *player);
-void collideEnemysAndPlayer(Enemy enemys[], int size, Player *player);
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[]);
+void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[]);
+void startExpolsion(Explosion explosions[], int x, int y, int size);
 
 int main(int argc, char **argv)
 {
@@ -52,12 +57,12 @@ int main(int argc, char **argv)
     ALLEGRO_BITMAP *explosionImage   = NULL;
 
 
-    Enemy enemys[ASTEROIDS_COUNT];
+    Enemy enemies[ASTEROIDS_COUNT];
     Bullet bullets[BULLETS_COUNT];
-    Player players[3];
-    Explosion *explosion;
+    Player players[NUM_OF_PLAYERS];
+    Explosion explosions[EXPLOSIONS_COUNT];
     Player *player = &players[0];
-    Player playerLifes[2];
+    Player playerLifes[2];//todo
 
 
     bool done       = false;
@@ -83,6 +88,7 @@ int main(int argc, char **argv)
     playerImage    = al_load_bitmap("ship.png");
     al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
     explosionImage = al_load_bitmap("explosion.png");
+    al_convert_mask_to_alpha(explosionImage, al_map_rgb(0, 0, 0));
     enemyImage     = al_load_bitmap("asteroid@50.png");
     event_queue    = al_create_event_queue();
     timer          = al_create_timer(1.0 / FPS);
@@ -101,9 +107,9 @@ int main(int argc, char **argv)
     //
 
     Player_init(player, WIDTH / 2 - 12, HEIGHT  - 20, playerImage);
-    //Explosion_init(explosion, explosionImage);
-    initEnemys(enemys, ASTEROIDS_COUNT, enemyImage);
+    initEnemies(enemies, ASTEROIDS_COUNT, enemyImage);
     initBullets(bullets, BULLETS_COUNT);
+    initExplosions(explosions, EXPLOSIONS_COUNT, explosionImage);
 
     al_start_timer(timer);
 
@@ -118,17 +124,16 @@ int main(int argc, char **argv)
         else if (ev.type == ALLEGRO_EVENT_TIMER)
         {
             redraw = true;
-            if (keys[UP]    && player->motion.y > HEIGHT/3)     Player_move(player, NORTH);
+            if (keys[UP]    && player->motion.y > HEIGHT / 3)   Player_move(player, NORTH);
             else if (keys[DOWN]  && player->motion.y < HEIGHT ) Player_move(player, SOUTH);
             else if (keys[RIGHT] && player->motion.x < WIDTH )  Player_move(player, EAST);
             else if (keys[LEFT]  && player->motion.x > 0)       Player_move(player, WEST);
             else Player_reset(player);
 
-
-            controllEnemys(enemys, ASTEROIDS_COUNT);
+            controllEnemies(enemies, ASTEROIDS_COUNT);
             controllBullets(bullets, BULLETS_COUNT);
-            collideBulletsAndEnemys(bullets, BULLETS_COUNT, enemys, ASTEROIDS_COUNT, player);
-            collideEnemysAndPlayer(enemys, ASTEROIDS_COUNT, player);
+            collideBulletsAndEnemies(bullets, BULLETS_COUNT, enemies, ASTEROIDS_COUNT, player, explosions);
+            collideEnemiesAndPlayer(enemies, ASTEROIDS_COUNT, player, explosions);
             //Explosion_start(explosion);
 
             if (player->energy <= 0)
@@ -188,9 +193,9 @@ int main(int argc, char **argv)
             if (!isGameOver)
             {
                 al_draw_bitmap(bgImage, -100 , -100, 0);
-                drawEnemys(enemys, ASTEROIDS_COUNT);
+                drawEnemies(enemies, ASTEROIDS_COUNT);
+                drawExplosions(explosions, EXPLOSIONS_COUNT);
                 Player_draw(player);
-
                 drawBullets(bullets, BULLETS_COUNT);
                 drawFrame(player, playerLifes);
                 al_draw_textf(font13, al_map_rgb(255, 0, 255), 5, 5, 0, "%d lives left. Destroyed %d objects", player->energy, player->score);
@@ -241,41 +246,58 @@ void initBullets(Bullet bullets[], int size)
         Bullet_init(&bullets[i]);
 }
 
-void initEnemys(Enemy enemys[], int size , ALLEGRO_BITMAP *image)
+void initEnemies(Enemy enemies[], int size , ALLEGRO_BITMAP *image)
 {
     for (int i = 0; i < size; i++)
     {
-        enemys[i].ID = i;
-        Enemy_init(&enemys[i], rand() % WIDTH, -(rand() % 120), image);
+        enemies[i].ID = i;
+        Enemy_init(&enemies[i], rand() % WIDTH, -(rand() % 120), image);
     }
 }
 
-void controllEnemys(Enemy enemys[], int size)
+void initExplosions(Explosion explosions[], int size, ALLEGRO_BITMAP *explosionImage)
 {
     for (int i = 0; i < size; ++i)
     {
-        if (enemys[i].live)
+        Explosion_init(&explosions[i], explosionImage);
+    }
+}
+
+void drawExplosions(Explosion explosions[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        if (explosions[i].live)
+            Explosion_draw(&explosions[i]);
+    }
+}
+
+void controllEnemies(Enemy enemies[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        if (enemies[i].live)
         {
 
-            enemys[i].motion.y += enemys[i].motion.speed;
+            enemies[i].motion.y += enemies[i].motion.speed;
         }
         else
         {
-            enemys[i].live     = true;
-            enemys[i].motion.x = 30 + rand() % (WIDTH - 60);
-            enemys[i].motion.y = - 100;
+            enemies[i].live     = true;
+            enemies[i].motion.x = 30 + rand() % (WIDTH - 60);
+            enemies[i].motion.y = - 100;
         }
-        if (enemys[i].motion.y > HEIGHT + 100)
-            enemys[i].live     = false;//send event
+        if (enemies[i].motion.y > HEIGHT + 100)
+            enemies[i].live     = false;//send event
     }
 }
 
-void drawEnemys(Enemy enemys[], int size)
+void drawEnemies(Enemy enemies[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        if (enemys[i].live)
-            Enemy_draw(&enemys[i]);
+        if (enemies[i].live)
+            Enemy_draw(&enemies[i]);
     }
 }
 void drawBullets(Bullet bullets[], int size)
@@ -309,7 +331,7 @@ int isCollision(Motion *m1, Motion *m2)
     return 0;
 }
 
-void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aSize, Player *player)
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[])
 {
     for (int i = 0; i < bSize; i++)
     {
@@ -317,13 +339,14 @@ void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aS
         {
             for (int j = 0; j < aSize; j++)
             {
-                if (enemys[j].live)
+                if (enemies[j].live)
                 {
-                    if (isCollision(&bullets[i].motion, &enemys[j].motion))
+                    if (isCollision(&bullets[i].motion, &enemies[j].motion))
                     {
                         bullets[i].live   = false;
-                        enemys[j].live = false;
+                        enemies[j].live = false;
                         player->score ++;
+                        startExpolsion(explosions, bullets[i].motion.x, bullets[i].motion.y, EXPLOSIONS_COUNT);
                     }
                 }
             }
@@ -331,15 +354,28 @@ void collideBulletsAndEnemys(Bullet bullets[], int bSize, Enemy enemys[], int aS
     }
 }
 
-void collideEnemysAndPlayer(Enemy enemys[], int size, Player *player)
+void startExpolsion(Explosion explosions[], int x, int y, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        if (!explosions[i].live)
+        {
+            Explosion_reset(&explosions[i], x , y);
+            break;
+        }
+
+    }
+}
+
+void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[])
 {
     for (int i = 0; i < size; i++)
     {
-        if (enemys[i].live)
+        if (enemies[i].live)
         {
-            if (isCollision(&enemys[i].motion, &player->motion))
+            if (isCollision(&enemies[i].motion, &player->motion))
             {
-                enemys[i].live = false;
+                enemies[i].live = false;
                 player->energy -= player->energy_step;
             }
         }
