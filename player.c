@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_primitives.h>
-#include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
-#include <allegro5/allegro_image.h>
 #include "player.h"
 
 void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)

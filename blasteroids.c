@@ -5,16 +5,20 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 #include "player.h"
 #include "enemy.h"
 #include "effects.h"
 #include "bullet.h"
 #include "global.h"
 
-#define  BG_IMAGE         "11750.jpg"
-#define  PLAYER_IMAGE     "ship.png"
-#define  EXPLOSION_IMAGE  "explosion.png"
-#define  ENEMY_IMAGE      "asteroid@50.png"
+#define  BG_IMAGE                "images/11750.jpg"
+#define  PLAYER_IMAGE            "images/ship.png"
+#define  EXPLOSION_IMAGE         "images/explosion.png"
+#define  ENEMY_IMAGE             "images/asteroid@50.png"
+#define  ASTEROID_DIE_SAMPLE     "sfx/hit3.wav"
+#define  BULLET_FIRED_SAMPLE     "sfx/pewpew.wav"
 
 
 
@@ -45,7 +49,7 @@ void startEnemies(Enemy enemies[], int size);
 void initBullets(Bullet bullets[], int size);
 void initExplosions(Explosion explosions[], int size, ALLEGRO_BITMAP *explosionImage);
 void controllBullets(Bullet bullets[], int size);
-void fireBullet(Bullet bullets[], int size, Player *player);
+void fireBullet(Bullet bullets[], int size, Player *player, ALLEGRO_SAMPLE *bullet_fired_sample);
 void drawBullets(Bullet bullets[], int size);
 
 //explosion
@@ -53,7 +57,7 @@ void drawExplosions(Explosion explosions[], int size);
 void startExpolsion(Explosion explosions[], int x, int y, int size);
 
 //collision
-void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize);
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize, ALLEGRO_SAMPLE *sample);
 void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[], int expSize);
 
 
@@ -61,14 +65,16 @@ void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosio
 int main(int argc, char **argv)
 {
     ALLEGRO_TRANSFORM t;
-    ALLEGRO_DISPLAY *display         = NULL;
-    ALLEGRO_EVENT_QUEUE *event_queue = NULL;
-    ALLEGRO_TIMER *timer             = NULL;
-    ALLEGRO_FONT *font13             = NULL;
-    ALLEGRO_BITMAP *bgImage          = NULL;
-    ALLEGRO_BITMAP *playerImage      = NULL;
-    ALLEGRO_BITMAP *enemyImage       = NULL;
-    ALLEGRO_BITMAP *explosionImage   = NULL;
+    ALLEGRO_DISPLAY *display            = NULL;
+    ALLEGRO_EVENT_QUEUE *event_queue    = NULL;
+    ALLEGRO_TIMER *timer                = NULL;
+    ALLEGRO_FONT *font13                = NULL;
+    ALLEGRO_BITMAP *bgImage             = NULL;
+    ALLEGRO_BITMAP *playerImage         = NULL;
+    ALLEGRO_BITMAP *enemyImage          = NULL;
+    ALLEGRO_BITMAP *explosionImage      = NULL;
+    ALLEGRO_SAMPLE *asteroid_die_sample = NULL;
+    ALLEGRO_SAMPLE *bullet_fired_sample = NULL;
 
     //objects
     Enemy enemies[ASTEROIDS_COUNT * NUM_OF_PLAYERS];
@@ -92,17 +98,24 @@ int main(int argc, char **argv)
     al_init_font_addon();
     al_init_ttf_addon();
     al_init_image_addon();
+    al_install_audio();
+    al_init_acodec_addon();
+
+    al_reserve_samples(4);
+
 
     display = al_create_display(WIDTH, HEIGHT);
     if (!display)
         return -1;
 
-    bgImage        = al_load_bitmap(BG_IMAGE);
-    playerImage    = al_load_bitmap(PLAYER_IMAGE);
-    explosionImage = al_load_bitmap(EXPLOSION_IMAGE);
-    enemyImage     = al_load_bitmap(ENEMY_IMAGE);
-    event_queue    = al_create_event_queue();
-    timer          = al_create_timer(1.0 / FPS);
+    bgImage             = al_load_bitmap(BG_IMAGE);
+    playerImage         = al_load_bitmap(PLAYER_IMAGE);
+    explosionImage      = al_load_bitmap(EXPLOSION_IMAGE);
+    enemyImage          = al_load_bitmap(ENEMY_IMAGE);
+    event_queue         = al_create_event_queue();
+    timer               = al_create_timer(1.0 / FPS);
+    asteroid_die_sample = al_load_sample(ASTEROID_DIE_SAMPLE);
+    bullet_fired_sample = al_load_sample(BULLET_FIRED_SAMPLE);
 
     al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
     al_convert_mask_to_alpha(explosionImage, al_map_rgb(0, 0, 0));
@@ -138,17 +151,16 @@ int main(int argc, char **argv)
         else if (ev.type == ALLEGRO_EVENT_TIMER)
         {
             redraw = true;
-            if (keys[UP]    && player->motion.y > HEIGHT / 3)   Player_move(player, NORTH);
-            else if (keys[DOWN]  && player->motion.y < HEIGHT ) Player_move(player, SOUTH);
-            else if (keys[RIGHT] && player->motion.x < WIDTH )  Player_move(player, EAST);
-            else if (keys[LEFT]  && player->motion.x > 0)       Player_move(player, WEST);
+            if (keys[UP]    && player->motion.y > HEIGHT / 3)                  Player_move(player, NORTH);
+            else if (keys[DOWN]  && player->motion.y < HEIGHT - FRAME_MARGIN ) Player_move(player, SOUTH);
+            else if (keys[RIGHT] && player->motion.x < WIDTH  - FRAME_MARGIN)  Player_move(player, EAST);
+            else if (keys[LEFT]  && player->motion.x > FRAME_MARGIN)           Player_move(player, WEST);
             else Player_reset(player);
 
             controllEnemies(enemies, ASTEROIDS_COUNT);
             controllBullets(bullets, BULLETS_COUNT);
-            collideBulletsAndEnemies(bullets, BULLETS_COUNT, enemies, ASTEROIDS_COUNT, player, explosions, EXPLOSIONS_COUNT);
+            collideBulletsAndEnemies(bullets, BULLETS_COUNT, enemies, ASTEROIDS_COUNT, player, explosions, EXPLOSIONS_COUNT, asteroid_die_sample);
             collideEnemiesAndPlayer(enemies, ASTEROIDS_COUNT, player, explosions, EXPLOSIONS_COUNT);
-            //Explosion_start(explosion);
 
             if (player->energy <= 0)
                 isGameOver = true;
@@ -174,7 +186,7 @@ int main(int argc, char **argv)
                 break;
             case ALLEGRO_KEY_SPACE:
                 keys[SPACE] = true;
-                fireBullet(bullets, BULLETS_COUNT, player);
+                fireBullet(bullets, BULLETS_COUNT, player, bullet_fired_sample);
                 break;
             }
         }
@@ -208,6 +220,7 @@ int main(int argc, char **argv)
             {
                 al_draw_bitmap(bgImage, -100 , -100, 0);
                 drawEnemies(enemies, ASTEROIDS_COUNT);
+
                 drawExplosions(explosions, EXPLOSIONS_COUNT);
                 Player_draw(player);
                 drawBullets(bullets, BULLETS_COUNT);
@@ -223,6 +236,7 @@ int main(int argc, char **argv)
         }
     }
     //destroy things
+    //al_destroy_sample(sample);
     al_destroy_timer(timer);
     al_destroy_event_queue(event_queue);
     al_destroy_bitmap(bgImage);
@@ -329,7 +343,7 @@ int isCollision(Motion *m1, Motion *m2)
     return 0;
 }
 
-void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize)
+void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize, ALLEGRO_SAMPLE *sample)
 {
     for (int i = 0; i < bSize; i++)
     {
@@ -345,6 +359,8 @@ void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int 
                         enemies[j].live = false;
                         player->score ++;
                         startExpolsion(explosions, bullets[i].motion.x, bullets[i].motion.y, expSize);
+                        //al_stop_sample(sample);
+                        al_play_sample(sample, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
                     }
                 }
             }
@@ -380,7 +396,7 @@ void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosio
     }
 }
 
-void fireBullet(Bullet bullets[], int size, Player *player)
+void fireBullet(Bullet bullets[], int size, Player *player, ALLEGRO_SAMPLE *bullet_fired_sample)
 {
     for ( int i = 0; i < size; i++)
     {
@@ -389,6 +405,7 @@ void fireBullet(Bullet bullets[], int size, Player *player)
             bullets[i].motion.x = player->motion.x ;
             bullets[i].motion.y = player->motion.y - 17;
             bullets[i].live = true;
+            al_play_sample(bullet_fired_sample, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
             break;
         }
     }

@@ -41,11 +41,10 @@ void Explosion_draw(Explosion *e)
         int fy = (e->animation.curFrame / e->animation.numOfColumns) * e->animation.frameHeight;
         al_draw_bitmap_region(e->animation.image, fx, fy, e->animation.frameWidth,
                               e->animation.frameHeight, e->motion.x - e->animation.frameWidth / 2, e->motion.y - e->animation.frameHeight / 2, 0);
-
     }
 }
 
-void Explosion_reset(Explosion *e,int x , int y)
+void Explosion_reset(Explosion *e, int x , int y)
 {
     e->animation.curFrame   = 0;
     e->animation.frameCount = 0;

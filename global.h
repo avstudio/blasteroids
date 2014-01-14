@@ -27,6 +27,5 @@ typedef struct
 
 } Animation;
 
-typedef union ALLEGRO_EVENT ALLEGRO_EVENT;
 #endif
 
