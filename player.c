@@ -29,7 +29,7 @@ void Player_init(Player *p, int x, int y, ALLEGRO_BITMAP *image)
     p->animation.frameHeight  = 41;
     p->animation.numOfColumns = 3;
     p->animation.direction    = 1;
-    p->animation.numOfRows    = 1;
+    p->animation.curRow       = 1;
     p->animation.image        = image;
 }
 int Player_isDead(Player *p)
@@ -47,7 +47,7 @@ void Player_draw(Player *p)
 {
 
     int fx = (p->animation.curFrame % p->animation.numOfColumns) * p->animation.frameWidth;
-    int fy = p->animation.numOfRows * p->animation.frameHeight;
+    int fy = p->animation.curRow * p->animation.frameHeight;
     al_draw_bitmap_region( p->animation.image, fx - 7, fy, p->animation.frameWidth,
                            p->animation.frameHeight, p->motion.x - p->animation.frameWidth / 2, p->motion.y - p->animation.frameHeight / 2, 0);
 
@@ -58,7 +58,7 @@ void Player_draw(Player *p)
 
 void Player_reset(Player *p)
 {
-    p->animation.numOfRows = 1;
+    p->animation.curRow = 1;
     p->animation.curFrame = 1;
 }
 
@@ -69,11 +69,11 @@ void Player_move(Player *p, Direction direction)
     {
     case NORTH:
         p->motion.y -= p->motion.speed;
-        p->animation.numOfRows = 0;
+        p->animation.curRow = 0;
         break;
     case SOUTH:
         p->motion.y += p->motion.speed;
-        p->animation.numOfRows = 2;
+        p->animation.curRow = 2;
         break;
     case WEST:
         p->motion.x -= p->motion.speed;

@@ -20,14 +20,14 @@
 
 //globals=========
 const int WIDTH            = 800;
-const int MAX_PLAYERS      = 800;
+const int MAX_PLAYERS      = 3;
 const int HEIGHT           = 600;
 const int FRAME_MARGIN     = 30;
 const int FPS              = 60;
 const int ASTEROIDS_COUNT  = 5;
 const int BULLETS_COUNT    = 5;
 const int EXPLOSIONS_COUNT = 5;
-const int NUM_OF_PLAYERS   = 3;
+int NUM_OF_PLAYERS   = 1;
 enum KEYS {UP, DOWN, LEFT, RIGHT, SPACE};
 
 
@@ -71,13 +71,13 @@ int main(int argc, char **argv)
     ALLEGRO_BITMAP *explosionImage   = NULL;
 
     //objects
-    Enemy enemies[ASTEROIDS_COUNT];
-    Explosion explosions[EXPLOSIONS_COUNT];
-    Bullet bullets[BULLETS_COUNT];
+    Enemy enemies[ASTEROIDS_COUNT * NUM_OF_PLAYERS];
+    Explosion explosions[EXPLOSIONS_COUNT * NUM_OF_PLAYERS];
+    Bullet bullets[BULLETS_COUNT * NUM_OF_PLAYERS];
     Player players[NUM_OF_PLAYERS];
-    Player *player = &players[0];
-    Player playerLifes[2];//todo
+    Player *player = &players[0];//todo
 
+    //other
     bool done       = false;
     bool isGameOver = false;
     bool redraw     = true;

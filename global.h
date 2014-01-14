@@ -15,6 +15,7 @@ typedef struct
 {
     int maxFrame;
     int curFrame;
+    int curRow;
     int frameCount;
     int frameDelay;
     int frameWidth;
