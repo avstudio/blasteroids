@@ -26,23 +26,32 @@ const int NUM_OF_PLAYERS   = 3;
 enum KEYS {UP, DOWN, LEFT, RIGHT, SPACE};
 
 
-
+//generic
 void error(char *msg);
-void drawFrame(Player *player, Player *playerLifes);
+int  isCollision(Motion *m1, Motion *m2);
+
+//enemy
 void initEnemies(Enemy enemies[], int size, ALLEGRO_BITMAP *image);
 void controllEnemies(Enemy enemies[], int size);
 void drawEnemies(Enemy enemies[], int size);
+void startEnemies(Enemy enemies[], int size);
+
+//bullet
 void initBullets(Bullet bullets[], int size);
 void initExplosions(Explosion explosions[], int size, ALLEGRO_BITMAP *explosionImage);
-void drawExplosions(Explosion explosions[], int size);
+void controllBullets(Bullet bullets[], int size);
 void fireBullet(Bullet bullets[], int size, Player *player);
 void drawBullets(Bullet bullets[], int size);
-void controllBullets(Bullet bullets[], int size);
-void startEnemies(Enemy enemies[], int size);
-int  isCollision(Motion *m1, Motion *m2);
+
+//explosion
+void drawExplosions(Explosion explosions[], int size);
+void startExpolsion(Explosion explosions[], int x, int y, int size);
+
+//collision
 void collideBulletsAndEnemies(Bullet bullets[], int bSize, Enemy enemies[], int aSize, Player *player, Explosion explosions[], int expSize);
 void collideEnemiesAndPlayer(Enemy enemies[], int size, Player *player, Explosion explosions[], int expSize);
-void startExpolsion(Explosion explosions[], int x, int y, int size);
+
+
 
 int main(int argc, char **argv)
 {
@@ -86,12 +95,13 @@ int main(int argc, char **argv)
 
     bgImage        = al_load_bitmap("11750.jpg");
     playerImage    = al_load_bitmap("ship.png");
-    al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
     explosionImage = al_load_bitmap("explosion.png");
-    al_convert_mask_to_alpha(explosionImage, al_map_rgb(0, 0, 0));
     enemyImage     = al_load_bitmap("asteroid@50.png");
     event_queue    = al_create_event_queue();
     timer          = al_create_timer(1.0 / FPS);
+
+    al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
+    al_convert_mask_to_alpha(explosionImage, al_map_rgb(0, 0, 0));
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -197,7 +207,6 @@ int main(int argc, char **argv)
                 drawExplosions(explosions, EXPLOSIONS_COUNT);
                 Player_draw(player);
                 drawBullets(bullets, BULLETS_COUNT);
-                drawFrame(player, playerLifes);
                 al_draw_textf(font13, al_map_rgb(255, 0, 255), 5, 5, 0, "%d lives left. Destroyed %d objects", player->energy, player->score);
             }
             else
@@ -217,21 +226,6 @@ int main(int argc, char **argv)
     al_destroy_bitmap(playerImage);
     al_destroy_bitmap(explosionImage);
     return 0;
-}
-
-void drawFrame(Player *player, Player *playerLifes )
-{
-    for (int i = 0; i <  player->energy - 1; ++i)
-    {
-        playerLifes[i].motion.x = 40  + ( i * 40);
-        playerLifes[i].motion.y = 50;
-        //Player_draw(&playerLifes[i],playerImage);
-        // al_draw_bitmap_region( playerImage, fx, fy, player->frameWidth,
-        //                   player->frameHeight, player->motion.x - player->frameWidth / 2, player->motion.y - player->frameHeight / 2, 0);
-
-
-
-    }
 }
 
 void error(char *msg)
