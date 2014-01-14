@@ -7,7 +7,7 @@ void Enemy_init(Enemy *e, int x, int y, ALLEGRO_BITMAP *image)
     e->color                  = al_map_rgb(3, 173, 49);
     e->live                   = false;
 
-    e->motion.speed           = (rand() % 4) + 1;
+    e->motion.speed           = (rand() % 3) + 1;
     e->motion.x               = x;
     e->motion.y               = y;
     e->motion.bx              = 18;

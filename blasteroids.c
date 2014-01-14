@@ -19,6 +19,7 @@
 #define  ENEMY_IMAGE             "images/asteroid@50.png"
 #define  ASTEROID_DIE_SAMPLE     "sfx/hit3.wav"
 #define  BULLET_FIRED_SAMPLE     "sfx/pewpew.wav"
+#define  MAIN_LOOP_SAMPLE        "sfx/loop.wav"
 
 
 
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
     ALLEGRO_BITMAP *explosionImage      = NULL;
     ALLEGRO_SAMPLE *asteroid_die_sample = NULL;
     ALLEGRO_SAMPLE *bullet_fired_sample = NULL;
+    ALLEGRO_SAMPLE *main_loop_sample    = NULL;
 
     //objects
     Enemy enemies[ASTEROIDS_COUNT * NUM_OF_PLAYERS];
@@ -116,6 +118,7 @@ int main(int argc, char **argv)
     timer               = al_create_timer(1.0 / FPS);
     asteroid_die_sample = al_load_sample(ASTEROID_DIE_SAMPLE);
     bullet_fired_sample = al_load_sample(BULLET_FIRED_SAMPLE);
+    main_loop_sample    = al_load_sample(MAIN_LOOP_SAMPLE);
 
     al_convert_mask_to_alpha(playerImage, al_map_rgb(255, 0, 255));
     al_convert_mask_to_alpha(explosionImage, al_map_rgb(0, 0, 0));
@@ -138,6 +141,8 @@ int main(int argc, char **argv)
     initBullets(bullets, BULLETS_COUNT);
     initExplosions(explosions, EXPLOSIONS_COUNT, explosionImage);
 
+
+    al_play_sample(main_loop_sample, 1, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
     al_start_timer(timer);
 
     while (!done)
